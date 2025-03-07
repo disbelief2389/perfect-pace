@@ -1,6 +1,5 @@
 package com.example.perfectpace
 
-import android.content.pm.PackageManager
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ComponentName
@@ -8,19 +7,21 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.perfectpace.TimerBroadcastReceiver.TimerUpdateListener.formattedTime
+import androidx.compose.ui.unit.sp
 import com.example.perfectpace.ui.theme.PerfectPaceTheme
 
 class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateListener {
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
     }
 
     override fun onTimeUpdate(intent: Intent?) {
-        currentTime = formattedTime
+        currentTime = intent?.getStringExtra("current_time") ?: "00:00:00"
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -96,8 +97,7 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
                                     timerService?.startStopwatch()
                                 }
                                 isWorking = !isWorking
-                            }
-                            .background(if (isWorking) Color.White else Color.Black),
+                            },
                         currentTime = currentTime,
                         isWorking = isWorking
                     )
@@ -136,14 +136,21 @@ fun TimerScreen(
     currentTime: String,
     isWorking: Boolean
 ) {
+    val backgroundColor by animateColorAsState(if (isWorking) Color.White else Color.Black, animationSpec = tween(durationMillis = 150))
+    val textColor by animateColorAsState(if (isWorking) Color.Black else Color.White, animationSpec = tween(durationMillis = 150))
+
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .clickable { /* Click handling is done in MainActivity */ },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = currentTime,
-            color = if (isWorking) Color.Black else Color.White,
+            color = textColor,
+            fontSize = 48.sp,
             modifier = Modifier.padding(24.dp)
         )
     }
