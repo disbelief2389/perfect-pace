@@ -4,15 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.net.URISyntaxException;
 import java.util.Objects;
 
 public class TimerBroadcastReceiver extends BroadcastReceiver {
     // Interface to pass updates to MainActivity
     public interface TimerUpdateListener {
-        @NotNull String formattedTime = "";
 
         void onTimeUpdate(Intent intent); // Pass full Intent
     }
@@ -32,11 +28,8 @@ public class TimerBroadcastReceiver extends BroadcastReceiver {
 
             // Safely update UI if listener is registered
             if (listener != null) {
-                try {
-                    listener.onTimeUpdate(Intent.getIntent(currentTime));
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                listener.onTimeUpdate(intent);
+                System.out.println("Broadcast received: " + currentTime);
             }
         }
     }

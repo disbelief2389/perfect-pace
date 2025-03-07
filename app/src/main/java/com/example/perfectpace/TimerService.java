@@ -47,6 +47,7 @@ public class TimerService extends Service {
             isBreakMode = false;
             startForeground(NOTIFICATION_ID, buildNotification());
             updateTimer();
+            System.out.println("Stopwatch started");
         }
     }
 
@@ -56,6 +57,7 @@ public class TimerService extends Service {
             breakDuration = elapsedTime; // Store work duration for break countdown
             startTime = SystemClock.elapsedRealtime();
             updateNotification();
+            System.out.println("Switched to break mode");
         }
     }
 
@@ -84,39 +86,24 @@ public class TimerService extends Service {
                 }
             }
 
-            sendBroadcast(new Intent("TIMER_UPDATE")
-                    .putExtra("current_time", getFormattedTime())
-                    .putExtra("is_break", isBreakMode));
-
+            sendBroadcast(new Intent("TIMER_UPDATE").putExtra("current_time", getFormattedTime()).putExtra("is_break", isBreakMode));
             updateNotification();
             handler.postDelayed(this, 1000);
+            System.out.println("Timer updated: " + getFormattedTime());
         }
 
         private void sendFinalUpdate() {
-            sendBroadcast(new Intent("TIMER_UPDATE")
-                    .putExtra("current_time", "00:00:00")
-                    .putExtra("is_break", false));
+            sendBroadcast(new Intent("TIMER_UPDATE").putExtra("current_time", "00:00:00").putExtra("is_break", false));
         }
     };
 
     private Notification buildNotification() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                notificationIntent,
-                PendingIntent.FLAG_IMMUTABLE  // Use FLAG_UPDATE_CURRENT if you're updating the intent
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE  // Use FLAG_UPDATE_CURRENT if you're updating the intent
         );
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(isBreakMode ? "Break Time" : "Work Time")
-                .setContentText(getFormattedTime())
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOnlyAlertOnce(true)
-                .setContentIntent(pendingIntent)
-                .build();
+        return new NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle(isBreakMode ? "Break Time" : "Work Time").setContentText(getFormattedTime()).setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setPriority(NotificationCompat.PRIORITY_LOW).setOnlyAlertOnce(true).setContentIntent(pendingIntent).build();
     }
 
     private void updateNotification() {
@@ -126,11 +113,7 @@ public class TimerService extends Service {
 
     private void createNotificationChannel() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Timer Service",
-                    NotificationManager.IMPORTANCE_LOW
-            );
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Timer Service", NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel);
         }

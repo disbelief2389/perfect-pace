@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
 
     override fun onTimeUpdate(intent: Intent?) {
         currentTime = intent?.getStringExtra("current_time") ?: "00:00:00"
+        println("Time updated: $currentTime")
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -91,6 +92,7 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
                         modifier = Modifier
                             .padding(innerPadding)
                             .clickable {
+                                println("Screen tapped. isWorking: $isWorking")
                                 if (isWorking) {
                                     timerService?.switchToBreakMode()
                                 } else {
@@ -109,7 +111,9 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, TimerService::class.java)
+        startService(intent) // Start the service initially
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        println("Service started and bound")
     }
 
     override fun onStop() {
@@ -136,8 +140,20 @@ fun TimerScreen(
     currentTime: String,
     isWorking: Boolean
 ) {
-    val backgroundColor by animateColorAsState(if (isWorking) Color.White else Color.Black, animationSpec = tween(durationMillis = 150))
-    val textColor by animateColorAsState(if (isWorking) Color.Black else Color.White, animationSpec = tween(durationMillis = 150))
+    val backgroundColor by animateColorAsState(
+        if (isWorking) {
+            Color.White
+        } else {
+            Color.Black
+        }, animationSpec = tween(durationMillis = 150)
+    )
+    val textColor by animateColorAsState(
+        if (isWorking) {
+            Color.Black
+        } else {
+            Color.White
+        }, animationSpec = tween(durationMillis = 150)
+    )
 
     Column(
         modifier = modifier
