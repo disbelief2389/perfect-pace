@@ -14,10 +14,13 @@ import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,11 +29,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.perfectpace.TimerBroadcastReceiver.TimerUpdateListener.formattedTime
 import com.example.perfectpace.ui.theme.PerfectPaceTheme
-
 
 class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateListener {
     private var timerService: TimerService? = null
@@ -71,9 +74,6 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
             }
         }
 
-//        val intent = Intent(this, TimerService::class.java)
-//        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-
         timerBroadcastReceiver = TimerBroadcastReceiver()
         TimerBroadcastReceiver.setTimerUpdateListener(this)
         val filter = IntentFilter("TIMER_UPDATE")
@@ -87,11 +87,19 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
             PerfectPaceTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     TimerScreen(
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .clickable {
+                                if (isWorking) {
+                                    timerService?.switchToBreakMode()
+                                } else {
+                                    timerService?.startStopwatch()
+                                }
+                                isWorking = !isWorking
+                            }
+                            .background(if (isWorking) Color.White else Color.Black),
                         currentTime = currentTime,
-                        isWorking = isWorking,
-                        onStartStop = { timerService?.startStopwatch() },
-                        onBreak = { timerService?.switchToBreakMode() }
+                        isWorking = isWorking
                     )
                 }
             }
@@ -122,15 +130,11 @@ class MainActivity : ComponentActivity(), TimerBroadcastReceiver.TimerUpdateList
     }
 }
 
-
-
 @Composable
 fun TimerScreen(
     modifier: Modifier = Modifier,
     currentTime: String,
-    isWorking: Boolean,
-    onStartStop: () -> Unit,
-    onBreak: () -> Unit
+    isWorking: Boolean
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -139,35 +143,19 @@ fun TimerScreen(
     ) {
         Text(
             text = currentTime,
+            color = if (isWorking) Color.Black else Color.White,
             modifier = Modifier.padding(24.dp)
         )
-
-        androidx.compose.material3.Button( // Explicitly reference Compose Button
-            onClick = onStartStop,
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text(if (isWorking) "Start Work" else "Pause")
-        }
-
-        androidx.compose.material3.Button(
-            onClick = onBreak,
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text("Take Break")
-        }
     }
 }
 
-// Replace Greeting with this preview:
 @Preview(showBackground = true)
 @Composable
 fun TimerPreview() {
     PerfectPaceTheme {
         TimerScreen(
             currentTime = "00:25:30",
-            isWorking = true,
-            onStartStop = {},
-            onBreak = {}
+            isWorking = true
         )
     }
 }

@@ -37,6 +37,9 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        main.java.srcDirs += 'src/main/java'
+    }
 }
 
 dependencies {
